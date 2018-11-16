@@ -9,7 +9,7 @@ import java.lang.System;
 
 public class Main {
     private static int PORT_NUMBER;
-    private static String PATH_TO_CONF_FILE = "/etc/mini/conf/conf.yml";
+    private static String PATH_TO_CONF_FILE = "conf.yml";
 
     public static void main(String[] args) throws Exception {
         Conf conf = new Conf();
