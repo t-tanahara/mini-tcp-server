@@ -1,4 +1,0 @@
-portNumber: 9090
-documentRoot: "."
-errorDocument: "."
-serverName: "example.com"

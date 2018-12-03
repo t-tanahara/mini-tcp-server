@@ -8,29 +8,26 @@ import java.nio.file.Paths;
 import java.lang.System;
 
 public class Main {
-    private static int PORT_NUMBER;
-    private static String PATH_TO_CONF_FILE = "conf.yml";
+    public static Conf CONF = new Conf();
 
     public static void main(String[] args) throws Exception {
-        Conf conf = new Conf();
-
         if (args.length > 0){
-            PATH_TO_CONF_FILE = args[0];
+            String pathToConfFile = args[0];
+
+            try (final InputStream in = Files.newInputStream(Paths.get(pathToConfFile))) {
+                Yaml çonfYml = new Yaml();
+                CONF = çonfYml.loadAs(in, Conf.class);
+            } catch (NoSuchFileException e) {
+                System.out.println("conf.yml not found in " + pathToConfFile);
+                return;
+            }
         }
 
-        try (final InputStream in = Files.newInputStream(Paths.get(PATH_TO_CONF_FILE))) {
-            Yaml çonfYml = new Yaml();
-            conf = çonfYml.loadAs(in, Conf.class);
-            PORT_NUMBER = conf.portNumber;
-        } catch (NoSuchFileException e) {
-            System.out.println("conf.yml not found!");
-            return;
-        }
 
-        try (ServerSocket server = new ServerSocket(PORT_NUMBER)) {
+        try (ServerSocket server = new ServerSocket(CONF.portNumber)) {
             while (true) {
                 Socket socket = server.accept();
-                ServerThread thread = new ServerThread(conf, socket);
+                ServerThread thread = new ServerThread(socket);
                 thread.run();
             }
         }

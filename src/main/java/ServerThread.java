@@ -12,16 +12,16 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 
 public class ServerThread implements Runnable {
-    private static String DOCUMENT_ROOT;
-    private static String ERROR_DOCUMENT;
-    private static String SERVER_NAME;
+    private String documentRoot;
+    private String errorDocumentPath;
+    private String serverName;
 
     private Socket socket;
 
-    ServerThread(Conf conf, Socket socket) {
-        this.DOCUMENT_ROOT = conf.documentRoot;
-        this.ERROR_DOCUMENT = conf.errorDocument;
-        this.SERVER_NAME = conf.serverName;
+    ServerThread(Socket socket) {
+        this.documentRoot = Main.CONF.documentRoot;
+        this.errorDocumentPath = Main.CONF.errorDocumentPath;
+        this.serverName = Main.CONF.serverName;
 
         this.socket = socket;
     }
@@ -44,18 +44,18 @@ public class ServerThread implements Runnable {
             output = socket.getOutputStream();
 
             FileSystem fs = FileSystems.getDefault();
-            Path path = fs.getPath(DOCUMENT_ROOT, request.getFilePath());
+            Path path = fs.getPath(documentRoot, request.getFilePath());
             Path absolutePath;
 
             try {
                 absolutePath = path.toRealPath();
             } catch (NoSuchFileException e) {
-                Response.sendNotFound(output, ERROR_DOCUMENT);
+                Response.sendNotFound(output, errorDocumentPath);
                 return;
             }
             if (Files.isDirectory(absolutePath)) {
                 String location = "http://"
-                        + ((request.getHostName() != null) ? request.getHostName() : SERVER_NAME)
+                        + ((request.getHostName() != null) ? request.getHostName() : serverName)
                         + request.getFilePath() + "/";
                 Response.sendMovedPermanently(output, location);
                 return;
@@ -64,7 +64,7 @@ public class ServerThread implements Runnable {
             try (InputStream fileInput = new BufferedInputStream(Files.newInputStream(absolutePath))) {
                 Response.sendOk(output, fileInput, extension);
             } catch (Exception e) {
-                Response.sendNotFound(output, ERROR_DOCUMENT);
+                Response.sendNotFound(output, errorDocumentPath);
             }
         } catch (Exception e) {
             e.printStackTrace();
